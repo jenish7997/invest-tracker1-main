@@ -1,7 +1,6 @@
-// src/app/app.route.ts (Fixed - Remove canActivate from redirect route)
-import { Routes } from '@angular/router';
-import { AuthGuard } from './guards/auth.guard';
 
+import { Routes } from '@angular/router';
+import { authGuard } from './guards/auth.guard';
 import { TransactionsComponent } from './components/transactions/transactions.component';
 import { InterestComponent } from './components/interest/interest.component';
 import { BalancesComponent } from './components/balances/balances.component';
@@ -9,24 +8,16 @@ import { AddInvestorComponent } from './components/add-investor/add-investor.com
 import { WithdrawComponent } from './components/withdraw/withdraw.component';
 import { AddmoneyComponent } from './components/addmoney/addmoney.component';
 import { AdminComponent } from './components/admin/admin.component';
-import { AdminLoginComponent } from './components/admin-login/admin-login.component';
-
+import { LoginComponent } from './components/login/login.component';
 export const appRoutes: Routes = [
-  // Login route - only public route
-  { path: 'login', component: AdminLoginComponent },
-  
-  // Default redirect route - NO canActivate here
+  { path: 'login', component: LoginComponent },
   { path: '', redirectTo: '/transactions', pathMatch: 'full' },
-  
-  // All application routes require authentication
-  { path: 'transactions', component: TransactionsComponent, canActivate: [AuthGuard] },
-  { path: 'interest-rates', component: InterestComponent, canActivate: [AuthGuard] },
-  { path: 'report', component: BalancesComponent, canActivate: [AuthGuard] },
-  { path: 'add-investor', component: AddInvestorComponent, canActivate: [AuthGuard] },
-  { path: 'withdraw', component: WithdrawComponent, canActivate: [AuthGuard] },
-  { path: 'add-money', component: AddmoneyComponent, canActivate: [AuthGuard] },
-  { path: 'admin', component: AdminComponent, canActivate: [AuthGuard] },
-  
-  // Fallback route
+  { path: 'transactions', component: TransactionsComponent, canActivate: [authGuard] },
+  { path: 'interest-rates', component: InterestComponent, canActivate: [authGuard] },
+  { path: 'report', component: BalancesComponent, canActivate: [authGuard] },
+  { path: 'add-investor', component: AddInvestorComponent, canActivate: [authGuard] },
+  { path: 'withdraw', component: WithdrawComponent, canActivate: [authGuard] },
+  { path: 'add-money', component: AddmoneyComponent, canActivate: [authGuard] },
+  { path: 'admin', component: AdminComponent, canActivate: [authGuard] },
   { path: '**', redirectTo: '/login' }
 ];

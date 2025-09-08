@@ -1,42 +1,52 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { environment } from '@environments/environment';
-
+import { Auth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, User } from '@angular/fire/auth';
+import { from, Observable, of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly ADMIN_USERNAME = environment.admin.username;
-  private readonly ADMIN_PASSWORD = environment.admin.password;
-  private readonly AUTH_KEY = 'invest_tracker_auth';
+  private auth: Auth = inject(Auth);
+  private router: Router = inject(Router);
+  currentUser$: Observable<User | null>;
 
-  constructor(private router: Router) {}
-
-  login(username: string, password: string): boolean {
-    if (username === this.ADMIN_USERNAME && password === this.ADMIN_PASSWORD) {
-      // Store authentication in memory (for session only)
-      sessionStorage.setItem(this.AUTH_KEY, 'authenticated');
-      return true;
-    }
-    return false;
+  constructor() {
+    this.currentUser$ = new Observable(observer => {
+      onAuthStateChanged(this.auth, user => {
+        observer.next(user);
+      });
+    });
   }
 
-  logout(): void {
-    sessionStorage.removeItem(this.AUTH_KEY);
-    this.router.navigate(['/login']);
+  login(email: string, password: string) {
+    return from(signInWithEmailAndPassword(this.auth, email, password));
   }
 
-  isAuthenticated(): boolean {
-    return sessionStorage.getItem(this.AUTH_KEY) === 'authenticated';
+  googleLogin() {
+    const provider = new GoogleAuthProvider();
+    return from(signInWithPopup(this.auth, provider));
+  }
+
+  logout(): Promise<void> {
+    return signOut(this.auth).then(() => {
+      this.router.navigate(['/login']);
+    });
+  }
+
+  isAuthenticated(): Observable<boolean> {
+    return this.currentUser$.pipe(
+      switchMap(user => of(!!user))
+    );
   }
 
   // Method to check authentication and redirect if needed
-  requireAuth(): boolean {
-    if (!this.isAuthenticated()) {
-      this.router.navigate(['/login']);
-      return false;
-    }
-    return true;
+  requireAuth(): void {
+    this.isAuthenticated().subscribe(isAuth => {
+      if (!isAuth) {
+        this.router.navigate(['/login']);
+      }
+    });
   }
 }
