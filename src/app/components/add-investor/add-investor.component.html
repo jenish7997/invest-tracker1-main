@@ -1,0 +1,174 @@
+ <div class="add-investor-container">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <span class="material-icons sidebar-icon">track_changes</span>
+      <h2 class="sidebar-title">InvestTracker</h2>
+    </div>
+    <div class="sidebar-content">
+      <h3 class="sidebar-subtitle">New Investor Profile</h3>
+      <p class="sidebar-description">
+        Create a new investor profile to begin tracking their portfolio,
+        transactions, and performance over time.
+      </p>
+      <ul class="feature-list">
+        <li>
+          <span class="material-icons">check_circle</span>
+          <span>Securely store investor information</span>
+        </li>
+        <li>
+          <span class="material-icons">check_circle</span>
+          <span>Track deposits, withdrawals, and returns</span>
+        </li>
+        <li>
+          <span class="material-icons">check_circle</span>
+          <span>Generate detailed performance reports</span>
+        </li>
+      </ul>
+    </div>
+    <div class="sidebar-footer">
+      <p>&copy; 2024 InvestTracker. All rights reserved.</p>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <h1 class="page-title">Create Investor Profile</h1>
+      <p class="page-subtitle">
+        Add a new investor to your portfolio management system.
+      </p>
+    </div>
+
+    <form
+      [formGroup]="investorForm"
+      (ngSubmit)="onSubmit()"
+      class="investor-form"
+    >
+      <div class="form-section">
+        <h3 class="section-title">Personal Information</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="name" class="form-label">
+              <span class="material-icons">person</span>
+              Full Name
+            </label>
+            <input
+              id="name"
+              type="text"
+              class="form-input"
+              formControlName="name"
+              placeholder="e.g., John Doe"
+            />
+            <div
+              *ngIf="
+                investorForm.get('name')?.touched &&
+                investorForm.get('name')?.invalid
+              "
+              class="error-message"
+            >
+              Full name is required
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="email" class="form-label">
+              <span class="material-icons">email</span>
+              Email Address
+            </label>
+            <input
+              id="email"
+              type="email"
+              class="form-input"
+              formControlName="email"
+              placeholder="e.g., john.doe@example.com"
+            />
+            <div
+              *ngIf="
+                investorForm.get('email')?.touched &&
+                investorForm.get('email')?.invalid
+              "
+              class="error-message"
+            >
+              Please enter a valid email address
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="phone" class="form-label">
+            <span class="material-icons">phone</span>
+            Phone Number
+          </label>
+          <input
+            id="phone"
+            type="tel"
+            class="form-input"
+            formControlName="phone"
+            placeholder="e.g., +1 234 567 8900"
+          />
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="section-title">Initial Investment</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="initialDeposit" class="form-label">
+              <span class="material-icons">account_balance_wallet</span>
+              Starting Balance
+            </label>
+            <div class="amount-input-wrapper">
+              <span class="currency-symbol">$</span>
+              <input
+                id="initialDeposit"
+                type="number"
+                class="form-input amount-input"
+                formControlName="initialDeposit"
+                placeholder="0.00"
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="investmentDate" class="form-label">
+              <span class="material-icons">calendar_today</span>
+              Investment Date
+            </label>
+            <input
+              id="investmentDate"
+              type="date"
+              class="form-input"
+              formControlName="investmentDate"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button
+          type="submit"
+          class="submit-btn"
+          [disabled]="investorForm.invalid || loading"
+        >
+          <span
+            class="material-icons"
+            *ngIf="!loading; else loadingSpinner"
+            >person_add</span
+          >
+          {{ loading ? "Creating Profile..." : "Create Investor Profile" }}
+        </button>
+        <ng-template #loadingSpinner>
+          <div class="spinner"></div>
+        </ng-template>
+      </div>
+    </form>
+
+    <div *ngIf="successMessage" class="alert alert-success">
+      <span class="material-icons">check_circle</span>
+      {{ successMessage }}
+    </div>
+    <div *ngIf="errorMessage" class="alert alert-danger">
+      <span class="material-icons">error</span>
+      {{ errorMessage }}
+    </div>
+  </main>
+</div>

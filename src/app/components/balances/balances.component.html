@@ -1,0 +1,98 @@
+<div class="report-container">
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">
+        <span class="material-icons title-icon">bar_chart</span>
+        Investor Performance Report
+      </h1>
+      <p class="page-subtitle">Generate and view monthly balance reports for investors</p>
+    </div>
+  </div>
+
+  <div class="form-card">
+    <h2 class="form-title">
+      <span class="material-icons">tune</span>
+      Report Parameters
+    </h2>
+    <form (ngSubmit)="run()" [formGroup]="form" class="report-form">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="investor" class="form-label">
+            <span class="material-icons">person</span>
+            Investor
+          </label>
+          <select id="investor" formControlName="investorId" class="form-select">
+            <option value="">-- Select an Investor --</option>
+            <option *ngFor="let i of investors" [value]="i.id">{{ i.name }}</option>
+          </select>
+          <div *ngIf="form.get('investorId')?.invalid && form.get('investorId')?.touched" class="error-message">
+            Please select an investor.
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="startMonth" class="form-label">
+            <span class="material-icons">date_range</span>
+            Start Month (Optional)
+          </label>
+          <input id="startMonth" type="month" formControlName="startMonthKey" class="form-input">
+        </div>
+
+        <div class="form-group">
+          <label for="endMonth" class="form-label">
+            <span class="material-icons">date_range</span>
+            End Month (Optional)
+          </label>
+          <input id="endMonth" type="month" formControlName="endMonthKey" class="form-input">
+        </div>
+      </div>
+
+      <button type="submit" class="submit-btn" [disabled]="form.invalid">
+        <span class="material-icons">analytics</span>
+        Generate Report
+      </button>
+    </form>
+  </div>
+
+  <div class="report-results">
+    <div *ngIf="rows.length; else emptyState">
+      <div class="report-header">
+        <h3 class="report-title">
+          Monthly Balances for: {{ form.get('investorId')?.value | investorName:investors }}
+        </h3>
+        <span class="report-badge">{{ rows.length }} Months</span>
+      </div>
+
+      <div class="table-container">
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>Month</th>
+              <th>Interest Rate</th>
+              <th>Net Flow (In/Out)</th>
+              <th>End of Month Balance</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let r of rows">
+              <td>{{ r.monthKey }}</td>
+              <td>{{ r.rate | percent:'1.2-4' }}</td>
+              <td [ngClass]="{ 'positive': r.delta > 0, 'negative': r.delta < 0 }">
+                {{ r.delta | number:'1.2-2' }}
+              </td>
+              <td><strong>{{ r.balance | currency:'USD':'symbol':'1.2-2' }}</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <ng-template #emptyState>
+      <div class="empty-state">
+        <span class="material-icons empty-icon">insights</span>
+        <h2>Ready to Generate a Report</h2>
+        <p>Select an investor and click "Generate Report" to view their monthly balance history.</p>
+      </div>
+    </ng-template>
+  </div>
+</div>
