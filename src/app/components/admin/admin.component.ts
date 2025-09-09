@@ -22,12 +22,6 @@ export class AdminComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Check authentication
-    if (!this.authService.isAuthenticated()) {
-      this.authService.requireAuth();
-      return;
-    }
-
     // Fetch all investors
     this.svc.listInvestors().subscribe(data => {
       this.investors = data;

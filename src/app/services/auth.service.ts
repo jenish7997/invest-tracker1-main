@@ -1,56 +1,46 @@
-import { Injectable, inject } from '@angular/core';
+
+import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { Auth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, User, createUserWithEmailAndPassword } from '@angular/fire/auth';
-import { from, Observable, of } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { Auth, authState, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, User } from '@angular/fire/auth';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private auth: Auth = inject(Auth);
-  private router: Router = inject(Router);
-  currentUser$: Observable<User | null>;
+  public readonly user$: Observable<User | null>;
 
-  constructor() {
-    this.currentUser$ = new Observable(observer => {
-      onAuthStateChanged(this.auth, user => {
-        observer.next(user);
-      });
-    });
+  constructor(private auth: Auth, private router: Router) {
+    this.user$ = authState(this.auth);
   }
 
-  login(email: string, password: string) {
-    return from(signInWithEmailAndPassword(this.auth, email, password));
+  isLoggedIn(): Observable<boolean> {
+    return this.user$.pipe(map(user => !!user));
   }
 
-  register(email: string, password: string) {
-    return from(createUserWithEmailAndPassword(this.auth, email, password));
+  async login(email: string, password: string): Promise<void> {
+    try {
+      await signInWithEmailAndPassword(this.auth, email, password);
+      this.router.navigate(['/admin']);
+    } catch (error) {
+      console.error('Login failed:', error);
+      throw error;
+    }
   }
 
-  googleLogin() {
-    const provider = new GoogleAuthProvider();
-    return from(signInWithPopup(this.auth, provider));
+  async register(email: string, password: string): Promise<void> {
+    try {
+      await createUserWithEmailAndPassword(this.auth, email, password);
+      this.router.navigate(['/admin']);
+    } catch (error) {
+      console.error('Registration failed:', error);
+      throw error;
+    }
   }
 
-  logout(): Promise<void> {
-    return signOut(this.auth).then(() => {
-      this.router.navigate(['/login']);
-    });
-  }
-
-  isAuthenticated(): Observable<boolean> {
-    return this.currentUser$.pipe(
-      switchMap(user => of(!!user))
-    );
-  }
-
-  // Method to check authentication and redirect if needed
-  requireAuth(): void {
-    this.isAuthenticated().subscribe(isAuth => {
-      if (!isAuth) {
-        this.router.navigate(['/login']);
-      }
-    });
+  async logout(): Promise<void> {
+    await signOut(this.auth);
+    this.router.navigate(['/login']);
   }
 }

@@ -1,4 +1,5 @@
-<div class="app-container" *ngIf="authService.isAuthenticated()">
+
+<div class="app-container" *ngIf="authService.user$ | async as user; else showLogin">
   <!-- Top Navigation -->
   <nav class="top-navbar">
     <div class="nav-brand">
@@ -50,7 +51,6 @@
   </main>
 </div>
 
-<!-- Authentication Section -->
-<div *ngIf="!authService.isAuthenticated()">
+<ng-template #showLogin>
   <router-outlet></router-outlet>
-</div>
+</ng-template>
