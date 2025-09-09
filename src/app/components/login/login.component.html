@@ -1,18 +1,25 @@
 <div class="login-container">
-  <h2>Login</h2>
-  <form [formGroup]="loginForm" (ngSubmit)="onLogin()">
-    <div class="form-group">
-      <label for="email">Email</label>
-      <input type="email" id="email" formControlName="email" class="form-control">
+  <div class="login-card">
+    <div class="login-header">
+      <span class="material-icons">login</span>
+      <h2>Login</h2>
     </div>
-    <div class="form-group">
-      <label for="password">Password</label>
-      <input type="password" id="password" formControlName="password" class="form-control">
+    <form [formGroup]="loginForm" (ngSubmit)="onLogin()">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" formControlName="email" class="form-control" placeholder="Enter your email">
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" formControlName="password" class="form-control" placeholder="Enter your password">
+      </div>
+      <button type="submit" [disabled]="!loginForm.valid" class="btn btn-primary">Login</button>
+    </form>
+    <div class="separator">
+      <span>OR</span>
     </div>
-    <button type="submit" [disabled]="!loginForm.valid" class="btn btn-primary">Login</button>
-  </form>
-  <button (click)="onGoogleLogin()" class="btn btn-google">
-    <i class="fab fa-google"></i> Sign in with Google
-  </button>
-  <p>Don't have an account? <a routerLink="/register">Register here</a></p>
+    <button (click)="onGoogleLogin()" class="btn btn-google">
+      <i class="fab fa-google"></i> Sign in with Google
+    </button>
+  </div>
 </div>

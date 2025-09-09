@@ -9,7 +9,7 @@ import { AppComponent } from './app/app.component';
 import { environment } from './environments/environment';
 import { provideRouter } from '@angular/router';
 
-import { appRoutes } from './app/app.route'; // ✅ correct import path
+import { routes } from './app/app.route'; // ✅ correct import path
 
 bootstrapApplication(AppComponent, {
   providers: [
@@ -18,6 +18,6 @@ bootstrapApplication(AppComponent, {
     provideFirebaseApp(() => initializeApp(environment.firebase)),
     provideFirestore(() => getFirestore()),
     provideAuth(() => getAuth()),
-    provideRouter(appRoutes) // ✅ router provider
+    provideRouter(routes) // ✅ router provider
   ]
 }).catch(err => console.error(err));
