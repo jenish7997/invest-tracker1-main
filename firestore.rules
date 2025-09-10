@@ -1,0 +1,32 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // --- TEMPORARY DIAGNOSTIC RULE ---
+    // This makes LISTING investors public, but keeps reading/writing secure.
+    // This test will prove the 'list' rule is the problem.
+    match /investors {
+      allow list: if true; // Publicly allow listing for the test
+      allow get, write: if request.auth != null; // Keep everything else secure
+    }
+
+    // This is a fallback for individual document access
+    match /investors/{investorId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // --- OTHER RULES REMAIN SECURE ---
+    match /transactions {
+      allow list: if request.auth != null;
+    }
+    match /transactions/{transactionId} {
+      allow read, write: if request.auth != null;
+    }
+    match /rates {
+      allow list: if request.auth != null;
+    }
+    match /rates/{rateId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
