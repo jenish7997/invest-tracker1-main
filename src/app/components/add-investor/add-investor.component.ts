@@ -1,6 +1,7 @@
+
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { AuthService } from '../../services/auth.service';
+import { InvestmentService } from '../../services/investment.service';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
@@ -19,15 +20,13 @@ export class AddInvestorComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private authService: AuthService,
+    private investmentService: InvestmentService,
     private router: Router
   ) {
     this.investorForm = this.fb.group({
       name: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
-      initialDeposit: [null, Validators.required],
-      investmentDate: ['', Validators.required],
-      phone: [''],
+      initialDeposit: [0, [Validators.required, Validators.min(0)]]
     });
   }
 
@@ -38,10 +37,9 @@ export class AddInvestorComponent implements OnInit {
       this.loading = true;
       this.successMessage = '';
       this.errorMessage = '';
-      const { email, name, initialDeposit, investmentDate, phone } = this.investorForm.value;
+      const { name, email, initialDeposit } = this.investorForm.value;
       try {
-        await this.authService.register(email, name);
-        // Add logic to handle the rest of the form data (initialDeposit, etc.)
+        await this.investmentService.addInvestor(name, email, initialDeposit);
         this.successMessage = 'Investor profile created successfully!';
         this.investorForm.reset();
         // Navigate or perform other actions as needed

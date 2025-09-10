@@ -1,7 +1,9 @@
+
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from './services/auth.service';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -12,8 +14,11 @@ import { AuthService } from './services/auth.service';
 })
 export class AppComponent {
   title = 'Investment Tracker';
+  isAdmin$: Observable<boolean>;
 
-  constructor(public authService: AuthService) {}
+  constructor(public authService: AuthService) {
+    this.isAdmin$ = this.authService.isAdmin$;
+  }
 
   onLogout(): void {
     this.authService.logout();

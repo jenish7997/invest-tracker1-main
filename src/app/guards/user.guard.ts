@@ -8,17 +8,17 @@ import { map, take } from 'rxjs/operators';
 @Injectable({
   providedIn: 'root'
 })
-export class AuthGuard implements CanActivate {
+export class UserGuard implements CanActivate {
   constructor(private authService: AuthService, private router: Router) {}
 
   canActivate(): Observable<boolean> {
-    return this.authService.isAdmin().pipe(
+    return this.authService.isUser().pipe(
       take(1),
-      map(isAdmin => {
-        if (isAdmin) {
+      map(isUser => {
+        if (isUser) {
           return true;
         } else {
-          this.router.navigate(['/report']);
+          this.router.navigate(['/login']);
           return false;
         }
       })

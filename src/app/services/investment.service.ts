@@ -1,110 +1,100 @@
+
 import { Injectable } from '@angular/core';
-import { Firestore, collection, addDoc, collectionData, deleteDoc, doc, query, where, orderBy, Timestamp, getDocs, setDoc } from '@angular/fire/firestore';
+import { Firestore, collection, collectionData, doc, setDoc, addDoc, query, where, getDocs, Timestamp, orderBy } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
-import { Transaction, MonthlyRate, Investor } from '../models';
+import { Transaction } from '../models'; // Import the Transaction model
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root'
+})
 export class InvestmentService {
-  constructor(private fs: Firestore) { }
 
-  investorsCol() { return collection(this.fs, 'investors'); }
-  investorDoc(id: string) { return doc(this.fs, 'investors', id); }
+  constructor(private firestore: Firestore) { }
 
-  async addInvestor(name: string) {
-    const ref = doc(this.investorsCol()); // auto id
-    await setDoc(ref, { name });
-    return ref.id;
+  listInvestors(): Observable<any[]> {
+    const investorsCollection = collection(this.firestore, 'investors');
+    return collectionData(investorsCollection, { idField: 'id' });
   }
 
-  listInvestors(): Observable<Investor[]> {
-    return collectionData(this.investorsCol(), { idField: 'id' }) as Observable<Investor[]>;
+  getInvestors(): Observable<any[]> {
+    return this.listInvestors();
   }
 
-  transactionsCol(investorId: string) { return collection(this.fs, `investors/${investorId}/transactions`); }
-
-  addTransaction(tx: Omit<Transaction, 'id'>) {
-    return addDoc(this.transactionsCol(tx.investorId), tx);
+  addInvestor(name: string, email: string, initialDeposit: number): Promise<any> {
+    const investorsCollection = collection(this.firestore, 'investors');
+    return addDoc(investorsCollection, {
+      name,
+      email,
+      initialInvestment: initialDeposit,
+      balance: initialDeposit
+    });
   }
 
-  listTransactions(investorId: string): Observable<Transaction[]> {
-    const q = query(this.transactionsCol(investorId), orderBy('date', 'asc'));
-    return collectionData(q, { idField: 'id' }) as Observable<Transaction[]>;
+  addTransaction(transactionData: any): Promise<any> {
+    const transactionsCollection = collection(this.firestore, 'transactions');
+    return addDoc(transactionsCollection, transactionData);
   }
 
-  async deleteTransaction(investorId: string, id: string) {
-    const d = doc(this.fs, `investors/${investorId}/transactions/${id}`);
-    await deleteDoc(d);
-  }
+  async computeBalances(investorId: string, investorName: string, startMonthKey?: string, endMonthKey?: string): Promise<any[]> {
+    const transactionsCollection = collection(this.firestore, 'transactions');
+    
+    let constraints = [
+      where('investorId', '==', investorId),
+      orderBy('date')
+    ];
 
-  ratesCol() { return collection(this.fs, 'monthlyRates'); } // doc id 'YYYY-MM'
-  setMonthlyRate(rate: MonthlyRate) {
-    const d = doc(this.fs, 'monthlyRates', rate.monthKey);
-    return setDoc(d, { monthKey: rate.monthKey, rate: rate.rate });
-  }
-  listRates(): Observable<MonthlyRate[]> {
-    return collectionData(this.ratesCol(), { idField: 'id' }) as Observable<MonthlyRate[]>;
-  }
-
-  // Helper to format month key
-  toMonthKey(date: Date): string {
-    const y = date.getFullYear();
-    const m = (date.getMonth() + 1).toString().padStart(2, '0');
-    return `${y}-${m}`;
-  }
-
-  // Compute monthly balances for an investor on the client
-  async computeBalances(investorId: string, investorName: string, startMonthKey?: string, endMonthKey?: string) {
-    // fetch transactions
-    const txSnap = await getDocs(query(this.transactionsCol(investorId), orderBy('date', 'asc')));
-    const txs = txSnap.docs.map(d => d.data() as any as Transaction);
-
-    // fetch rates
-    const ratesSnap = await getDocs(this.ratesCol());
-    const rates: Record<string, number> = {};
-    ratesSnap.forEach(d => {
-      const rd = d.data() as any as MonthlyRate;
-      rates[rd.monthKey] = rd.rate ?? 0;
+    const q = query(collection(this.firestore, 'transactions'), ...constraints);
+    
+    const querySnapshot = await getDocs(q);
+    
+    const allTransactions = querySnapshot.docs.map(doc => {
+      const data = doc.data() as Transaction; // Assert the type here
+      return {
+        ...data,
+        date: (data.date as unknown as Timestamp).toDate()
+      };
     });
 
-    if (txs.length === 0) return [] as any[];
+    const startDate = startMonthKey ? new Date(startMonthKey + '-01') : null;
+    const endDate = endMonthKey ? new Date(endMonthKey + '-28') : null;
 
-    const firstDate = new Date((txs[0].date as any).toDate?.() ?? txs[0].date);
-    const start = startMonthKey ? new Date(startMonthKey + '-01') : new Date(firstDate.getFullYear(), firstDate.getMonth(), 1);
-    const today = new Date();
-    const end = endMonthKey ? new Date(endMonthKey + '-01') : new Date(today.getFullYear(), today.getMonth(), 1);
-
-    const months: string[] = [];
-    let cursor = new Date(start);
-    while (cursor <= end) {
-      const key = this.toMonthKey(cursor);
-      months.push(key);
-      cursor = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
-    }
-
-    // group transactions by monthKey
-    const txByMonth: Record<string, Transaction[]> = {};
-    for (const tx of txs) {
-      const d = (tx.date as any).toDate ? (tx.date as any).toDate() : new Date(tx.date);
-      const key = this.toMonthKey(d);
-      (txByMonth[key] = txByMonth[key] || []).push(tx);
-    }
+    const filteredTransactions = allTransactions.filter(t => {
+      const transactionDate = t.date;
+      if (startDate && transactionDate < startDate) return false;
+      if (endDate && transactionDate > endDate) return false;
+      return true;
+    });
 
     let balance = 0;
-    const rows: any[] = [];
-    for (const mk of months) {
-      const monthTxs = txByMonth[mk] || [];
-      let delta = 0;
-      for (const t of monthTxs) {
-        delta += t.type === 'invest' ? t.amount : -t.amount;
+    const runningBalances = filteredTransactions.map(t => {
+      if (t.type === 'invest' || t.type === 'deposit') {
+        balance += t.amount;
+      } else if (t.type === 'withdraw') {
+        balance -= t.amount;
       }
-      balance = (balance + delta) * (1 + (rates[mk] ?? 0));
-      rows.push({ investorId, investorName, monthKey: mk, rate: rates[mk] ?? 0, delta, balance: Math.round(balance * 100) / 100 });
-    }
-    return rows;
+      return {
+        ...t,
+        balance: balance,
+        date: t.date.toLocaleDateString()
+      };
+    });
+    
+    return runningBalances;
   }
 
-  listTransactionsByInvestor(investorId: string): Observable<Transaction[]> {
-    return this.listTransactions(investorId);
+  listRates(): Observable<any[]> {
+    const ratesCollection = collection(this.firestore, 'rates');
+    return collectionData(ratesCollection, { idField: 'id' });
   }
 
+  setMonthlyRate(rate: any): Promise<void> {
+    const ratesDoc = doc(this.firestore, 'rates', 'monthly');
+    return setDoc(ratesDoc, rate, { merge: true });
+  }
+
+  listTransactionsByInvestor(investorId: string): Observable<any[]> {
+    const transactionsCollection = collection(this.firestore, 'transactions');
+    const q = query(transactionsCollection, where('investorId', '==', investorId));
+    return collectionData(q, { idField: 'id' });
+  }
 }
