@@ -1,0 +1,37 @@
+
+<div class="report-container">
+  <div class="page-header">
+    <h1 class="page-title">
+      <span class="material-icons">assessment</span>
+      Investment Report
+    </h1>
+    <p class="page-description">
+      A summary of all investors in the system.
+    </p>
+  </div>
+  
+  <ng-container *ngIf="investors.length > 0; else noInvestors">
+    <div class="table-responsive">
+      <table class="investor-table">
+        <thead>
+          <tr>
+            <th>Investor Name</th>
+            <!-- More columns can be added here as data becomes available -->
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let investor of investors; trackBy: trackByInvestor">
+            <td>{{ investor.name }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </ng-container>
+
+  <ng-template #noInvestors>
+    <div class="no-data-message">
+      <span class="material-icons">info</span>
+      <p>No investor data is currently available.</p>
+    </div>
+  </ng-template>
+</div>

@@ -9,7 +9,7 @@ import { AddmoneyComponent } from './components/addmoney/addmoney.component';
 import { WithdrawComponent } from './components/withdraw/withdraw.component';
 import { InterestComponent } from './components/interest/interest.component';
 import { AddInvestorComponent } from './components/add-investor/add-investor.component';
-import { ReportComponent } from './components/report/report';
+import { ReportComponent } from './components/report/report.component';
 import { UserGuard } from './guards/user.guard';
 
 export const routes: Routes = [
