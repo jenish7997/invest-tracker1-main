@@ -1,147 +1,79 @@
- <div class="add-investor-container">
-  <aside class="sidebar">
-    <div class="sidebar-header">
-      <span class="material-icons sidebar-icon">track_changes</span>
-      <h2 class="sidebar-title">InvestTracker</h2>
-    </div>
-    <div class="sidebar-content">
-      <h3 class="sidebar-subtitle">New Investor Profile</h3>
-      <p class="sidebar-description">
-        Create a new investor profile to begin tracking their portfolio,
-        transactions, and performance over time.
-      </p>
-      <ul class="feature-list">
-        <li>
-          <span class="material-icons">check_circle</span>
-          <span>Securely store investor information</span>
-        </li>
-        <li>
-          <span class="material-icons">check_circle</span>
-          <span>Track deposits, withdrawals, and returns</span>
-        </li>
-        <li>
-          <span class="material-icons">check_circle</span>
-          <span>Generate detailed performance reports</span>
-        </li>
-      </ul>
-    </div>
-    <div class="sidebar-footer">
-      <p>&copy; 2024 InvestTracker. All rights reserved.</p>
-    </div>
-  </aside>
 
-  <main class="main-content">
-    <div class="page-header">
-      <h1 class="page-title">Create Investor Profile</h1>
-      <p class="page-subtitle">
-        Add a new investor to your portfolio management system.
-      </p>
-    </div>
-
-    <form
-      [formGroup]="investorForm"
-      (ngSubmit)="onSubmit()"
-      class="investor-form"
-    >
-      <div class="form-section">
-        <h3 class="section-title">Personal Information</h3>
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="name" class="form-label">
-              <span class="material-icons">person</span>
-              Full Name
-            </label>
-            <input
-              id="name"
-              type="text"
-              class="form-input"
-              formControlName="name"
-              placeholder="e.g., John Doe"
-            />
-            <div
-              *ngIf="
-                investorForm.get('name')?.touched &&
-                investorForm.get('name')?.invalid
-              "
-              class="error-message"
-            >
-              Full name is required
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="email" class="form-label">
-              <span class="material-icons">email</span>
-              Email Address
-            </label>
-            <input
-              id="email"
-              type="email"
-              class="form-input"
-              formControlName="email"
-              placeholder="e.g., john.doe@example.com"
-            />
-            <div
-              *ngIf="
-                investorForm.get('email')?.touched &&
-                investorForm.get('email')?.invalid
-              "
-              class="error-message"
-            >
-              Please enter a valid email address
-            </div>
-          </div>
+<!-- NG-ZORRO Layout -->
+<div class="page-container">
+  <div nz-row nzJustify="center" nzAlign="middle" class="form-row">
+    <div nz-col nzXs="24" nzSm="20" nzMd="16" nzLg="12" nzXl="10">
+      
+      <!-- Fancy Card -->
+      <nz-card class="form-card" [nzBordered]="false">
+        
+        <!-- Header -->
+        <div class="card-header">
+          <h1 nz-typography class="form-title">
+            <span nz-icon nzType="user-add" nzTheme="outline"></span>
+            Create New Investor
+          </h1>
+          <p nz-typography nzType="secondary" class="form-subtitle">
+            Securely onboard a new client with their initial investment details.
+          </p>
         </div>
-      </div>
 
-      <div class="form-section">
-        <h3 class="section-title">Initial Investment</h3>
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="initialDeposit" class="form-label">
-              <span class="material-icons">account_balance_wallet</span>
-              Starting Balance
-            </label>
-            <div class="amount-input-wrapper">
-              <span class="currency-symbol">$</span>
-              <input
-                id="initialDeposit"
-                type="number"
-                class="form-input amount-input"
-                formControlName="initialDeposit"
-                placeholder="0.00"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
+        <!-- Form -->
+        <form nz-form [formGroup]="investorForm" (ngSubmit)="onSubmit()">
 
-      <div class="form-actions">
-        <button
-          type="submit"
-          class="submit-btn"
-          [disabled]="investorForm.invalid || loading"
-        >
-          <span
-            class="material-icons"
-            *ngIf="!loading; else loadingSpinner"
-            >person_add</span
-          >
-          {{ loading ? "Creating Profile..." : "Create Investor Profile" }}
-        </button>
-        <ng-template #loadingSpinner>
-          <div class="spinner"></div>
-        </ng-template>
-      </div>
-    </form>
+          <!-- Name -->
+          <nz-form-item>
+            <nz-form-control nzErrorTip="Please enter the investor's full name">
+              <nz-input-group nzPrefixIcon="user">
+                <input type="text" nz-input formControlName="name" placeholder="Full Name" />
+              </nz-input-group>
+            </nz-form-control>
+          </nz-form-item>
 
-    <div *ngIf="successMessage" class="alert alert-success">
-      <span class="material-icons">check_circle</span>
-      {{ successMessage }}
+          <!-- Email -->
+          <nz-form-item>
+            <nz-form-control nzErrorTip="Please enter a valid email address">
+              <nz-input-group nzPrefixIcon="mail">
+                <input type="email" nz-input formControlName="email" placeholder="Email Address" />
+              </nz-input-group>
+            </nz-form-control>
+          </nz-form-item>
+
+          <!-- Password -->
+          <nz-form-item>
+            <nz-form-control nzErrorTip="Password must be at least 8 characters long">
+              <nz-input-group nzPrefixIcon="lock">
+                <input type="password" nz-input formControlName="password" placeholder="Set Permanent Password" />
+              </nz-input-group>
+            </nz-form-control>
+          </nz-form-item>
+
+          <!-- Initial Deposit -->
+          <nz-form-item>
+            <nz-form-control nzErrorTip="Please enter a valid initial deposit amount">
+              <nz-input-group nzPrefixIcon="dollar">
+                <input type="number" nz-input formControlName="initialDeposit" placeholder="Initial Deposit" />
+              </nz-input-group>
+            </nz-form-control>
+          </nz-form-item>
+
+          <!-- Submit Button -->
+          <nz-form-item>
+            <nz-form-control>
+              <button nz-button nzType="primary" [nzLoading]="loading" nzBlock>
+                <span *ngIf="!loading">Create Investor Profile</span>
+                <span *ngIf="loading">Creating...</span>
+              </button>
+            </nz-form-control>
+          </nz-form-item>
+          
+        </form>
+
+        <!-- Server Messages -->
+        <nz-alert *ngIf="successMessage" nzType="success" [nzMessage]="successMessage" nzShowIcon class="server-message"></nz-alert>
+        <nz-alert *ngIf="errorMessage" nzType="error" [nzMessage]="errorMessage" nzShowIcon class="server-message"></nz-alert>
+
+      </nz-card>
     </div>
-    <div *ngIf="errorMessage" class="alert alert-danger">
-      <span class="material-icons">error</span>
-      {{ errorMessage }}
-    </div>
-  </main>
+  </div>
 </div>
