@@ -2,30 +2,39 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // This is the correct, secure rule.
-    // It allows a logged-in user to LIST the investors collection.
-    match /investors {
-      allow list: if request.auth != null;
+    // Helper function to check if the user is an admin
+    function isAdmin() {
+      // The admin claim is on the authentication TOKEN, not in the database.
+      // This is the correct way to check for the admin role.
+      return request.auth.token.admin == true;
     }
-    
-    // It also allows a logged-in user to access specific documents.
+
+    // INVESTORS Collection
     match /investors/{investorId} {
-      allow read, write: if request.auth != null;
+      // Admins can read the full list of investors (for the report page)
+      allow list: if isAdmin();
+      // An admin can get any investor's data
+      // A user can ONLY get their own data (by matching their UID to the document ID)
+      allow get: if isAdmin() || request.auth.uid == investorId;
+      // Only admins can create, update, or delete investors
+      allow write: if isAdmin();
     }
 
-    // Apply the same correct pattern for transactions and rates
-    match /transactions {
-      allow list: if request.auth != null;
-    }
+    // TRANSACTIONS Collection
     match /transactions/{transactionId} {
-      allow read, write: if request.auth != null;
+      // Admins can list all transactions
+      // Users can ONLY list transactions where their UID matches the 'uid' field
+      allow list: if isAdmin() || request.auth.uid == request.query.uid;
+      // An admin can get any transaction
+      // A user can ONLY get their own transactions
+      allow get: if isAdmin() || request.auth.uid == resource.data.uid;
+      // Only admins can create transactions
+      allow write: if isAdmin();
     }
 
-    match /rates {
-      allow list: if request.auth != null;
-    }
+    // RATES Collection (Admins only)
     match /rates/{rateId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isAdmin();
     }
   }
 }
