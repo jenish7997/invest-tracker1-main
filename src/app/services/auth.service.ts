@@ -2,8 +2,15 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { Auth, authState, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, User, getIdTokenResult, IdTokenResult } from '@angular/fire/auth';
-import { Observable, of, from } from 'rxjs';
-import { map, switchMap, shareReplay } from 'rxjs/operators';
+import { Observable, of, from, combineLatest } from 'rxjs';
+import { map, switchMap, shareReplay, startWith } from 'rxjs/operators';
+
+interface AppUser {
+  uid: string;
+  displayName: string;
+  email: string;
+  isAdmin: boolean;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -11,6 +18,7 @@ import { map, switchMap, shareReplay } from 'rxjs/operators';
 export class AuthService {
   public readonly user$: Observable<User | null>;
   public readonly isAdmin$: Observable<boolean>;
+  public readonly currentUser$: Observable<AppUser | null>;
 
   constructor(private auth: Auth, private router: Router) {
     this.user$ = authState(this.auth);
@@ -23,6 +31,21 @@ export class AuthService {
         return from(getIdTokenResult(user, true)).pipe(
           map((tokenResult: IdTokenResult) => (tokenResult.claims['admin'] === true))
         );
+      }),
+      shareReplay(1)
+    );
+
+    this.currentUser$ = combineLatest([this.user$, this.isAdmin$]).pipe(
+      map(([user, isAdmin]) => {
+        if (!user) {
+          return null;
+        }
+        return {
+          uid: user.uid,
+          displayName: user.displayName || '',
+          email: user.email || '',
+          isAdmin: isAdmin
+        };
       }),
       shareReplay(1)
     );

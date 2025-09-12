@@ -1,37 +1,55 @@
 
-<div class="report-container">
-  <div class="page-header">
-    <h1 class="page-title">
-      <span class="material-icons">assessment</span>
-      Investment Report
-    </h1>
-    <p class="page-description">
-      A summary of all investors in the system.
-    </p>
-  </div>
-  
-  <ng-container *ngIf="investors.length > 0; else noInvestors">
-    <div class="table-responsive">
-      <table class="investor-table">
-        <thead>
-          <tr>
-            <th>Investor Name</th>
-            <!-- More columns can be added here as data becomes available -->
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let investor of investors; trackBy: trackByInvestor">
-            <td>{{ investor.name }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </ng-container>
+<div class="container mx-auto px-4 py-8">
+  <h1 class="text-3xl font-bold mb-4">{{ isAdmin ? 'All Investors Report' : 'My Investment Report' }}</h1>
 
-  <ng-template #noInvestors>
-    <div class="no-data-message">
-      <span class="material-icons">info</span>
-      <p>No investor data is currently available.</p>
+  <div *ngIf="reports.length === 0" class="text-center text-gray-500">
+    No investment data is currently available to generate reports.
+  </div>
+
+  <div *ngFor="let report of reports" class="mb-8 p-4 border rounded-lg shadow-md">
+    <h2 class="text-2xl font-semibold mb-2">{{ report.investorName }}</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+      <div class="p-4 bg-blue-100 rounded-lg">
+        <h3 class="font-bold">Principal Amount</h3>
+        <p class="text-xl">{{ report.principal | currency }}</p>
+      </div>
+      <div class="p-4 bg-green-100 rounded-lg">
+        <h3 class="font-bold">Total Interest</h3>
+        <p class="text-xl">{{ report.totalInterest | currency }}</p>
+      </div>
+      <div class="p-4 bg-purple-100 rounded-lg">
+        <h3 class="font-bold">Grown Capital</h3>
+        <p class="text-xl">{{ report.grownCapital | currency }}</p>
+      </div>
     </div>
-  </ng-template>
+
+    <div *ngIf="report.transactions.length > 0">
+      <h3 class="text-xl font-semibold mb-2">Transaction History</h3>
+      <div class="overflow-x-auto">
+        <table class="min-w-full bg-white">
+          <thead class="bg-gray-800 text-white">
+            <tr>
+              <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Date</th>
+              <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Type</th>
+              <th class="text-right py-3 px-4 uppercase font-semibold text-sm">Amount</th>
+              <th class="text-right py-3 px-4 uppercase font-semibold text-sm">Running Balance</th>
+            </tr>
+          </thead>
+          <tbody class="text-gray-700">
+            <tr *ngFor="let t of report.transactions" class="border-b">
+              <td class="text-left py-3 px-4">{{ t.date }}</td>
+              <td class="text-left py-3 px-4">{{ t.type }}</td>
+              <td class="text-right py-3 px-4">{{ t.amount | currency }}</td>
+              <td class="text-right py-3 px-4">{{ t.balance | currency }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div *ngIf="report.transactions.length === 0" class="text-center text-gray-500 mt-4">
+      No transactions found for this period.
+    </div>
+  </div>
 </div>

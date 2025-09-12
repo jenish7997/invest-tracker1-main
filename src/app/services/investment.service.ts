@@ -1,6 +1,6 @@
 
 import { Injectable } from '@angular/core';
-import { Firestore, collection, collectionData, doc, setDoc, addDoc, query, where, getDocs, Timestamp, orderBy } from '@angular/fire/firestore';
+import { Firestore, collection, collectionData, doc, setDoc, addDoc, query, where, getDocs, Timestamp, orderBy, getDoc } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 import { Transaction } from '../models'; // Import the Transaction model
 
@@ -36,6 +36,11 @@ export class InvestmentService {
   }
 
   async computeBalances(investorId: string, investorName: string, startMonthKey?: string, endMonthKey?: string): Promise<any[]> {
+    const investorDoc = doc(this.firestore, 'investors', investorId);
+    const investorSnapshot = await getDoc(investorDoc);
+    const investorData = investorSnapshot.data();
+    const initialInvestment = investorData ? investorData['initialInvestment'] : 0;
+
     const transactionsCollection = collection(this.firestore, 'transactions');
     
     let constraints = [
@@ -48,7 +53,7 @@ export class InvestmentService {
     const querySnapshot = await getDocs(q);
     
     const allTransactions = querySnapshot.docs.map(doc => {
-      const data = doc.data() as Transaction; // Assert the type here
+      const data = doc.data() as Transaction;
       return {
         ...data,
         date: (data.date as unknown as Timestamp).toDate()
@@ -65,12 +70,14 @@ export class InvestmentService {
       return true;
     });
 
-    let balance = 0;
+    let balance = initialInvestment;
     const runningBalances = filteredTransactions.map(t => {
-      if (t.type === 'invest' || t.type === 'deposit') {
+      if (t.type === 'deposit') {
         balance += t.amount;
       } else if (t.type === 'withdraw') {
         balance -= t.amount;
+      } else if (t.type === 'interest') {
+        balance += t.amount;
       }
       return {
         ...t,

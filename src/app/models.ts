@@ -3,7 +3,7 @@ export interface Transaction {
   investorId: string;
   investorName: string;
   date: any; // Firestore Timestamp
-  type: 'invest' | 'withdraw' | 'deposit'; // Added 'deposit'
+  type: 'invest' | 'withdraw' | 'deposit' | 'interest'; // Added 'interest'
   amount: number;
 }
 
