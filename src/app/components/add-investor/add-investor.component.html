@@ -56,18 +56,6 @@
         </div>
       </div>
 
-      <!-- Initial Deposit Field -->
-      <div class="form-group">
-        <label for="initialDeposit">Initial Deposit ($)</label>
-        <div class="input-wrapper">
-          <span class="material-icons input-icon">attach_money</span>
-          <input id="initialDeposit" type="number" formControlName="initialDeposit" placeholder="e.g., 5000">
-        </div>
-        <div *ngIf="investorForm.controls['initialDeposit'].invalid && investorForm.controls['initialDeposit'].touched" class="error-message">
-          Please enter a valid deposit amount.
-        </div>
-      </div>
-
       <!-- Submit Button -->
       <div class="form-actions">
         <button type="submit" [disabled]="investorForm.invalid || loading" class="submit-btn">

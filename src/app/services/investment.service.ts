@@ -1,46 +1,26 @@
 
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Firestore, collection, collectionData, doc, setDoc, addDoc, query, where, getDocs, Timestamp, orderBy, getDoc } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
-import { Transaction } from '../models'; // Import the Transaction model
+import { Transaction, Investor, MonthlyRate } from '../models';
 
 @Injectable({
   providedIn: 'root'
 })
 export class InvestmentService {
+  private firestore: Firestore = inject(Firestore);
 
-  constructor(private firestore: Firestore) { }
-
-  listInvestors(): Observable<any[]> {
+  listInvestors(): Observable<Investor[]> {
     const investorsCollection = collection(this.firestore, 'investors');
-    return collectionData(investorsCollection, { idField: 'id' });
+    return collectionData(investorsCollection, { idField: 'id' }) as Observable<Investor[]>;
   }
 
-  getInvestors(): Observable<any[]> {
-    return this.listInvestors();
-  }
-
-  addInvestor(name: string, email: string, initialDeposit: number): Promise<any> {
-    const investorsCollection = collection(this.firestore, 'investors');
-    return addDoc(investorsCollection, {
-      name,
-      email,
-      initialInvestment: initialDeposit,
-      balance: initialDeposit
-    });
-  }
-
-  addTransaction(transactionData: any): Promise<any> {
+  addTransaction(transactionData: Omit<Transaction, 'id'>): Promise<any> {
     const transactionsCollection = collection(this.firestore, 'transactions');
     return addDoc(transactionsCollection, transactionData);
   }
 
-  async computeBalances(investorId: string, investorName: string, startMonthKey?: string, endMonthKey?: string): Promise<any[]> {
-    const investorDoc = doc(this.firestore, 'investors', investorId);
-    const investorSnapshot = await getDoc(investorDoc);
-    const investorData = investorSnapshot.data();
-    const initialInvestment = investorData ? investorData['initialInvestment'] : 0;
-
+  async computeBalances(investorId: string, startMonthKey?: string, endMonthKey?: string): Promise<any[]> {
     const transactionsCollection = collection(this.firestore, 'transactions');
     
     let constraints = [
@@ -70,14 +50,12 @@ export class InvestmentService {
       return true;
     });
 
-    let balance = initialInvestment;
+    let balance = 0;
     const runningBalances = filteredTransactions.map(t => {
-      if (t.type === 'deposit') {
+      if (t.type === 'invest' || t.type === 'deposit' || t.type === 'interest') {
         balance += t.amount;
       } else if (t.type === 'withdraw') {
         balance -= t.amount;
-      } else if (t.type === 'interest') {
-        balance += t.amount;
       }
       return {
         ...t,
@@ -88,20 +66,36 @@ export class InvestmentService {
     
     return runningBalances;
   }
+  
+  async getTransactionsByInvestor(investorId: string): Promise<Transaction[]> {
+    const transactionsCollection = collection(this.firestore, 'transactions');
+    const q = query(
+      transactionsCollection, 
+      where('investorId', '==', investorId),
+      orderBy('date', 'asc')
+    );
+    const querySnapshot = await getDocs(q);
+    
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      date: (doc.data()['date'] as unknown as Timestamp).toDate()
+    })) as Transaction[];
+  }
 
-  listRates(): Observable<any[]> {
+  listRates(): Observable<MonthlyRate[]> {
     const ratesCollection = collection(this.firestore, 'rates');
-    return collectionData(ratesCollection, { idField: 'id' });
+    return collectionData(ratesCollection, { idField: 'id' }) as Observable<MonthlyRate[]>;
   }
 
   setMonthlyRate(rate: any): Promise<void> {
-    const ratesDoc = doc(this.firestore, 'rates', 'monthly');
+    const ratesDoc = doc(this.firestore, 'rates', rate.monthKey);
     return setDoc(ratesDoc, rate, { merge: true });
   }
 
-  listTransactionsByInvestor(investorId: string): Observable<any[]> {
+  listTransactionsByInvestor(investorId: string): Observable<Transaction[]> {
     const transactionsCollection = collection(this.firestore, 'transactions');
     const q = query(transactionsCollection, where('investorId', '==', investorId));
-    return collectionData(q, { idField: 'id' });
+    return collectionData(q, { idField: 'id' }) as Observable<Transaction[]>;
   }
 }

@@ -10,6 +10,8 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideHttpClient } from '@angular/common/http';
 import { environment } from '../environments/environment';
+import { AuthService } from './services/auth.service';
+import { localeConfig } from './locale.config';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -20,6 +22,8 @@ export const appConfig: ApplicationConfig = {
     provideFunctions(() => getFunctions()),
     provideAnimations(),
     provideHttpClient(),
-    importProvidersFrom(MatSnackBarModule)
+    importProvidersFrom(MatSnackBarModule),
+    AuthService,
+    localeConfig
   ]
 };

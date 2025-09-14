@@ -12,15 +12,15 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
       <div class="p-4 bg-blue-100 rounded-lg">
         <h3 class="font-bold">Principal Amount</h3>
-        <p class="text-xl">{{ report.principal | currency }}</p>
+        <p class="text-xl">{{ report.principal | currency:'INR':'symbol':'1.2-2' }}</p>
       </div>
       <div class="p-4 bg-green-100 rounded-lg">
         <h3 class="font-bold">Total Interest</h3>
-        <p class="text-xl">{{ report.totalInterest | currency }}</p>
+        <p class="text-xl">{{ report.totalInterest | currency:'INR':'symbol':'1.2-2' }}</p>
       </div>
       <div class="p-4 bg-purple-100 rounded-lg">
         <h3 class="font-bold">Grown Capital</h3>
-        <p class="text-xl">{{ report.grownCapital | currency }}</p>
+        <p class="text-xl">{{ report.grownCapital | currency:'INR':'symbol':'1.2-2' }}</p>
       </div>
     </div>
 
@@ -31,17 +31,33 @@
           <thead class="bg-gray-800 text-white">
             <tr>
               <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Date</th>
-              <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Type</th>
-              <th class="text-right py-3 px-4 uppercase font-semibold text-sm">Amount</th>
-              <th class="text-right py-3 px-4 uppercase font-semibold text-sm">Running Balance</th>
+              <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Description</th>
+              <th class="text-right py-3 px-4 uppercase font-semibold text-sm">Principal</th>
+              <th class="text-right py-3 px-4 uppercase font-semibold text-sm">Interest</th>
+              <th class="text-right py-3 px-4 uppercase font-semibold text-sm">Withdrawal</th>
+              <th class="text-right py-3 px-4 uppercase font-semibold text-sm">Balance</th>
             </tr>
           </thead>
           <tbody class="text-gray-700">
             <tr *ngFor="let t of report.transactions" class="border-b">
               <td class="text-left py-3 px-4">{{ t.date }}</td>
-              <td class="text-left py-3 px-4">{{ t.type }}</td>
-              <td class="text-right py-3 px-4">{{ t.amount | currency }}</td>
-              <td class="text-right py-3 px-4">{{ t.balance | currency }}</td>
+              <td class="text-left py-3 px-4 capitalize">{{ t.type }}</td>
+              <td class="text-right py-3 px-4 text-green-600">
+                <span *ngIf="t.type === 'invest' || t.type === 'deposit'">
+                  {{ t.amount | currency:'INR':'symbol':'1.2-2' }}
+                </span>
+              </td>
+              <td class="text-right py-3 px-4 text-green-600">
+                <span *ngIf="t.type === 'interest'">
+                  {{ t.amount | currency:'INR':'symbol':'1.2-2' }}
+                </span>
+              </td>
+              <td class="text-right py-3 px-4 text-red-600">
+                <span *ngIf="t.type === 'withdraw'">
+                  {{ t.amount | currency:'INR':'symbol':'1.2-2' }}
+                </span>
+              </td>
+              <td class="text-right py-3 px-4 font-semibold">{{ t.balance | currency:'INR':'symbol':'1.2-2' }}</td>
             </tr>
           </tbody>
         </table>

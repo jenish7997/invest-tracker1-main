@@ -2,8 +2,8 @@ export interface Transaction {
   id?: string;
   investorId: string;
   investorName: string;
-  date: any; // Firestore Timestamp
-  type: 'invest' | 'withdraw' | 'deposit' | 'interest'; // Added 'interest'
+  date: any; // Firestore Timestamp or Date
+  type: 'invest' | 'withdraw' | 'deposit' | 'interest';
   amount: number;
 }
 
@@ -16,4 +16,6 @@ export interface MonthlyRate {
 export interface Investor {
   id?: string;
   name: string;
+  email?: string;
+  balance?: number;
 }

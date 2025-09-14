@@ -3,11 +3,13 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { InvestmentService } from '../../services/investment.service';
 import { MonthlyRate } from '../../models';
 import { CommonModule } from '@angular/common';
+import { Functions, httpsCallable, HttpsCallableResult } from '@angular/fire/functions';
 
 @Component({
   selector: 'app-interest',
   templateUrl: './interest.component.html',
   styleUrls: ['./interest.component.css'],
+  standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
 })
 export class InterestComponent implements OnInit {
@@ -17,48 +19,47 @@ export class InterestComponent implements OnInit {
   successMessage: string = '';
   errorMessage: string = '';
 
-  constructor(private fb: FormBuilder, public svc: InvestmentService) { }
+  constructor(
+    private fb: FormBuilder,
+    private functions: Functions,
+    public svc: InvestmentService
+  ) { }
 
   ngOnInit() {
     this.rateForm = this.fb.group({
-      monthKey: ['', Validators.required], // ✅ required
-      rate: [0, [Validators.required, Validators.min(0)]], // ✅ must be >= 0
+      monthKey: ['', Validators.required],
+      rate: [0, [Validators.required, Validators.min(0), Validators.max(1)]], // Rate as a decimal (e.g., 0.05 for 5%)
     });
 
     this.svc.listRates().subscribe(r => {
-      // optional: sort by month for cleaner table display
       this.rates = r.sort((a, b) => a.monthKey.localeCompare(b.monthKey));
     });
   }
 
-
-  async saveRate() {
+  async applyInterest() {
     if (this.rateForm.invalid) return;
 
     this.loading = true;
     this.clearMessages();
 
-    const v = this.rateForm.value;
+    const { monthKey, rate } = this.rateForm.value;
+
+    const applyInterestFn = httpsCallable(this.functions, 'applyMonthlyInterest');
 
     try {
-      await this.svc.setMonthlyRate({
-        monthKey: v.monthKey!,
-        rate: Number(v.rate),
-      });
+      const result: HttpsCallableResult = await applyInterestFn({ monthKey, rate });
+      this.successMessage = (result.data as any).message || 'Interest applied successfully!';
 
-      this.successMessage = 'Interest rate saved successfully!';
-
-      // reset only the rate, keep the same month for convenience
-      this.rateForm.patchValue({ rate: 0 });
+      this.rateForm.reset();
 
       // Refresh the rates list
       this.svc.listRates().subscribe(r => {
         this.rates = r.sort((a, b) => a.monthKey.localeCompare(b.monthKey));
       });
 
-    } catch (error) {
-      this.errorMessage = 'Error saving interest rate. Please try again.';
-      console.error('Error saving rate:', error);
+    } catch (error: any) {
+      this.errorMessage = error.message || 'Error applying interest. Please try again.';
+      console.error('Error applying interest:', error);
     } finally {
       this.loading = false;
     }

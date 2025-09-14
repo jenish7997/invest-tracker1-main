@@ -52,7 +52,6 @@ export class BalancesComponent implements OnInit {
 
     this.rows = await this.svc.computeBalances(
       investor.id!,
-      investor.name,
       v.startMonthKey || undefined,
       v.endMonthKey || undefined
     );
